@@ -1,0 +1,5 @@
+services:
+    calendar.exception_listener:
+        class: PublicBundle\Listener\MessageExceptionListener
+        tags:
+               - { name: kernel.event_listener, event: kernel.exception }

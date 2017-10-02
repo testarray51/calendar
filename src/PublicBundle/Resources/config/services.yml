@@ -1,0 +1,6 @@
+services:
+    validation_service:
+        class: PublicBundle\Services\ValidationService
+    calendar:
+        class: PublicBundle\Services\EventService
+        arguments: [ "@doctrine.orm.entity_manager" , "@service_container", "@validation_service" ]
