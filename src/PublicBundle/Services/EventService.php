@@ -14,28 +14,19 @@ class EventService extends BaseApiService
     protected $appRepository = 'PublicBundle:Event';
 
     public function createEvent($description, $from, $to, $location, $comment) {
-        if(!$this->validator->validateStrings([$description, $from, $to, $location, $comment]))
-            throw new BadRequestHttpException(EventException::RESPONSE_BAD_REQUEST);
-
-        if(!$this->validator->validateDate($from) || !$this->validator->validateDate($to))
-            throw new BadRequestHttpException(EventException::RESPONSE_INVALID_DATE_FORMAT);
-
+        $this->validateData($description, $from, $to, $location, $comment);
         $event = EventFactory::create($description, new \DateTime($from), new \DateTime($to), $location, $comment);
-
+        
         return $this->repository->save($event);
     }
 
     public function editEvent($id, $description, $from, $to, $location, $comment) {
+        
         $event = $this->getEvent($id);
-
-        if(!$this->validator->validateNullOrStrings([$description, $from, $to, $location, $comment]))
-            throw new BadRequestHttpException(EventException::RESPONSE_BAD_REQUEST);
-        if(!$this->validator->validateDate($from) || !$this->validator->validateDate($to))
-            throw new BadRequestHttpException(EventException::RESPONSE_INVALID_DATE_FORMAT);
-
+        $this->validateData($description, $from, $to, $location, $comment);
         $from = ($from) ?  new \DateTime($from) : null;
         $to = ($to) ? new \DateTime($to) : null;
-
+        
         return $this->repository->save(Event::updateObject($event, $description, $from, $to, $location, $comment));
     }
 
@@ -45,10 +36,10 @@ class EventService extends BaseApiService
                 throw new BadRequestHttpException(EventException::RESPONSE_INVALID_ORDER);
             }
 
-            return $this->repository->findBy([], ['fromDate' => $order], ($offset + 1) * $limit, $offset * $limit);
+            return $this->repository->findBy([], ['fromDate' => $order], $limit, $offset * $limit);
         }
         else {
-            return $this->repository->findBy([], ['id' => Event::ORDER_ASC], ($offset + 1) * $limit, $offset * $limit);
+            return $this->repository->findBy([], ['id' => Event::ORDER_ASC], $limit, $offset * $limit);
         }
 
     }
@@ -71,5 +62,12 @@ class EventService extends BaseApiService
 
         return $event;
 
+    }
+    
+    private function validateData($description, $from, $to, $location, $comment) {
+       if(!$this->validator->validateNullOrStrings([$description, $from, $to, $location, $comment]))
+        throw new BadRequestHttpException(EventException::RESPONSE_BAD_REQUEST);
+        if(!$this->validator->validateDate($from) || !$this->validator->validateDate($to))
+            throw new BadRequestHttpException(EventException::RESPONSE_INVALID_DATE_FORMAT);
     }
 }
